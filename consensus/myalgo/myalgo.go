@@ -118,7 +118,7 @@ func ecrecover(header *types.Header, sigcache *lru.ARCCache) (common.Address, er
 	return signer, nil
 }
 
-func New(config *params.CliqueConfig, db ethdb.Database) *MyAlgo {
+func New(config *params.MyAlgoConfig, db ethdb.Database) *MyAlgo {
 	signatures, _ := lru.NewARC(inmemorySignatures)
 	return &MyAlgo{signatures: signatures}
 }
@@ -127,13 +127,13 @@ func (c *MyAlgo) Author(header *types.Header) (common.Address, error) {
 	return ecrecover(header, c.signatures)
 }
 
-func (MyAlgo *MyAlgo) VerifyHeader(chain consensus.ChainReader, header *types.Header, seal bool) error {
+func (MyAlgo *MyAlgo) VerifyHeader(chain consensus.ChainHeaderReader, header *types.Header, seal bool) error {
 	log.Info("will verfiyHeader")
 	return nil
 
 }
 
-func (MyAlgo *MyAlgo) VerifyHeaders(chain consensus.ChainReader, headers []*types.Header, seals []bool) (chan<- struct{}, <-chan error) {
+func (MyAlgo *MyAlgo) VerifyHeaders(chain consensus.ChainHeaderReader, headers []*types.Header, seals []bool) (chan<- struct{}, <-chan error) {
 
 	log.Info("will verfiyHeaders")
 
@@ -168,7 +168,7 @@ func (MyAlgo *MyAlgo) VerifyUncles(chain consensus.ChainReader, block *types.Blo
 
 }
 
-func (MyAlgo *MyAlgo) Prepare(chain consensus.ChainReader, header *types.Header) error {
+func (MyAlgo *MyAlgo) Prepare(chain consensus.ChainHeaderReader, header *types.Header) error {
 
 	log.Info("will prepare the block")
 
@@ -201,17 +201,17 @@ func (c *MyAlgo) FinalizeAndAssemble(chain consensus.ChainHeaderReader, header *
 	return types.NewBlock(header, txs, nil, receipts, trie.NewStackTrie(nil)), nil
 }
 
-func (MyAlgo *MyAlgo) Seal(chain consensus.ChainReader, block *types.Block, stop <-chan struct{}) (*types.Block, error) {
+func (c *MyAlgo) Seal(chain consensus.ChainHeaderReader, block *types.Block, results chan<- *types.Block, stop <-chan struct{}) error {
 
 	log.Info("will Seal the block")
 
 	//time.Sleep(15 * time.Second)
 
-	header := block.Header()
+	// header := block.Header()
 
 	// header.Nonce, header.MixDigest = getRequiredHeader()
 
-	return block.WithSeal(header), nil
+	return nil
 
 }
 
@@ -220,6 +220,10 @@ func SealHash(header *types.Header) (hash common.Hash) {
 	encodeSigHeader(hasher, header)
 	hasher.(crypto.KeccakState).Read(hash[:])
 	return hash
+}
+
+func (c *MyAlgo) SealHash(header *types.Header) common.Hash {
+	return SealHash(header)
 }
 
 func (MyAlgo *MyAlgo) CalcDifficulty(chain consensus.ChainHeaderReader, time uint64, parent *types.Header) *big.Int {
