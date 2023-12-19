@@ -30,6 +30,7 @@ var Modules = map[string]string{
 	"txpool":   TxpoolJs,
 	"les":      LESJs,
 	"vflux":    VfluxJs,
+	"myalgo":   MyAlgoJs,
 }
 
 const CliqueJs = `
@@ -866,4 +867,28 @@ web3._extend({
 		}),
 	]
 });
+`
+
+const MyAlgoJs = `
+web3._extend({
+
+property: 'myalgo',
+
+methods: [
+
+new web3._extend.Method({
+
+name: 'echoNumber',
+
+call: 'myalgo_echoNumber',
+
+params: 1,
+
+inputFormatter: [null]
+
+}),
+
+]
+
+})
 `

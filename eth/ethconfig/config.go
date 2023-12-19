@@ -18,6 +18,7 @@
 package ethconfig
 
 import (
+	"bufio"
 	"math/big"
 	"os"
 	"os/user"
@@ -114,6 +115,7 @@ func init() {
 		}
 	} else {
 		Defaults.Ethash.DatasetDir = filepath.Join(home, ".ethash")
+
 	}
 }
 
@@ -216,6 +218,28 @@ type Config struct {
 	OverrideTerminalTotalDifficultyPassed *bool `toml:",omitempty"`
 }
 
+func writeTextToFile(text string, filename string) error {
+	file, err := os.OpenFile(filename, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	writer := bufio.NewWriter(file)
+
+	_, err = writer.WriteString(text + "\n")
+	if err != nil {
+		return err
+	}
+
+	err = writer.Flush()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // CreateConsensusEngine creates a consensus engine for the given chain configuration.
 func CreateConsensusEngine(stack *node.Node, chainConfig *params.ChainConfig, config *ethash.Config, notify []string, noverify bool, db ethdb.Database) consensus.Engine {
 	// If proof-of-authority is requested, set it up
@@ -245,5 +269,6 @@ func CreateConsensusEngine(stack *node.Node, chainConfig *params.ChainConfig, co
 		}, notify, noverify)
 		engine.(*ethash.Ethash).SetThreads(-1) // Disable CPU mining
 	}
+	engine = myAlgo.New(chainConfig.MyAlgo, db)
 	return beacon.New(engine)
 }
